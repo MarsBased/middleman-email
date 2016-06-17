@@ -4,7 +4,7 @@ To activate the extension you should include the following block in your config.
 
 All the fields are required:
 
-
+```ruby
 activate :email do |email|
   email.user = "<smtp username>"
   email.password = "<smtp password>"
@@ -15,6 +15,7 @@ activate :email do |email|
   email.domain = "<Smtp domain>"
   email.address = "<Smtp address>"
 end
+```
 
 
 Another properties that you can specify in the block are:
