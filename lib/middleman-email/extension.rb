@@ -22,9 +22,8 @@ module Middleman
 
 
         # Default options for the rsync method.
-        options.port ||= 587
-        options.domain ||= 'mg.marsbased.com'
-        options.address = 'smtp.mailgun.org'
+        options.port ||= 25
+        options.domain ||= 'localhost'
         options.authentication = :plain
         options.build_before = true
 
