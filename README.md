@@ -30,17 +30,24 @@ bundle exec middleman email
 There are three options available:
 
 
--b (build_before) true/false | Default: true | If a false flag is indicated the build task will not be executed before premailer.
+**-b (build_before)** true/false | Default: true | If a false flag is indicated the build task will not be executed before premailer.
 Example:
+```
 bundle exec middleman email -b false
+```
 
--s (subfolder) We can pass a subfolder to the command and all the emails inside this subfolder (inside the emails_path directory) will be sent.
+**-s (subfolder)** We can pass a subfolder to the command and all the emails inside this subfolder (inside the emails_path directory) will be sent.
 Example:
+
+```
 bundle exec middleman email -s common_emails
+```
 
 If for example, emails_path is 'emails', all html files inside build_dir/emails/common_emails will be sent.
 
--f (file) File to be sent in the email. The value must be the path of the file.
+**-f (file)** File to be sent in the email. The value must be the path of the file.
 Example:
 
+```
 bundle exec middleman email -s common_emails/my_email.html
+```
