@@ -80,10 +80,11 @@ module Middleman
       def send_email(file)
         from = email_options.from_email
         to = email_options.to_email
+        subject = file.gsub(File.join(app.build_dir, email_options.emails_path), '')
         Mail.deliver do
           from     from
           to       to
-          subject  'Test email: '
+          subject  "Email: #{subject}"
           body
            html_part do
             content_type 'text/html; charset=UTF-8'
