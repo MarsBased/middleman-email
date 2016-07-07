@@ -43,7 +43,8 @@ module Middleman
 
       def premailer(files_path)
         files_path.each do |file|
-          premailer = Premailer.new(file, :warn_level => Premailer::Warnings::SAFE, :adapter => :nokogiri, :preserve_styles => false, :remove_comments => false, :remove_ids => true, :'query-string' => '')
+          base_url = email_options.base_url || ''
+          premailer = Premailer.new(file, :base_url => base_url, :warn_level => Premailer::Warnings::SAFE, :adapter => :nokogiri, :preserve_styles => false, :remove_comments => false, :remove_ids => true, :'query-string' => '')
           fileout = File.open(file, 'w')
           fileout.puts premailer.to_inline_css
           fileout.close

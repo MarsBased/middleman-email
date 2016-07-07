@@ -5,7 +5,7 @@ require 'middleman-core'
 module Middleman
   module Email
     class Options < Struct.new(:user, :password, :domain, :address, :port,
-                               :authentication,:emails_path, :build_before, :to_email, :from_email);
+                               :authentication,:emails_path, :build_before, :to_email, :from_email, :base_url);
     end
 
     class << self
