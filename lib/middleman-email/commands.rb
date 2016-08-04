@@ -98,7 +98,7 @@ module Middleman
         options = nil
 
         begin
-          options = app.options
+          options = app.email_options
         rescue NoMethodError
           raise Error, "ERROR: ou need to activate the email extension in config.rb.\n#{Middleman::Email::README}"
         end

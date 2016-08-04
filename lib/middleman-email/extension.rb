@@ -53,7 +53,7 @@ module Middleman
 
 
     module Helpers
-      def options
+      def email_options
         ::Middleman::Email.options
       end
     end
