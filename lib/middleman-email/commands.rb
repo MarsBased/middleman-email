@@ -41,6 +41,8 @@ module Middleman
         premailer(files_to_send(emails_path))
       end
 
+      protected
+
       def premailer(files_path)
         files_path.each do |file|
           base_url = email_options.base_url || ''
@@ -120,9 +122,6 @@ module Middleman
       def app
         ::Middleman::Application.server.inst
       end
-
-
-
     end
     Base.map('ems' => 'email')
   end
