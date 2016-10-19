@@ -20,8 +20,6 @@ module Middleman
         options = Options.new(options_hash)
         yield options if block_given?
 
-
-        # Default options for the rsync method.
         options.port ||= 25
         options.domain ||= 'localhost'
         options.authentication = :plain

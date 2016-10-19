@@ -38,19 +38,15 @@ module Middleman
         build_before = options.fetch('build_before', email_options.build_before)
         file = options.fetch('file', nil)
         run('middleman build') if build_before
-        premailer(files_to_send(emails_path))
+        compile_and_send_emails(emails_path)
       end
 
-      def premailer(files_path)
-        files_path.each do |file|
-          premailer = Premailer.new(file, :warn_level => Premailer::Warnings::SAFE, :adapter => :nokogiri, :preserve_styles => false, :remove_comments => false, :remove_ids => true, :'query-string' => '')
-          fileout = File.open(file, 'w')
-          fileout.puts premailer.to_inline_css
-          fileout.close
-          send_email(file)
-          premailer.warnings.each do |w|
-            puts "#{w[:message]} (#{w[:level]}) may not render properly in #{w[:clients]}"
-          end
+      def compile_and_send_emails(emails_path)
+        files_to_send(emails_path).each do |file|
+          body = Premailer.compile(file)
+          Email.new(body: body,
+                    from: email_options.from_email,
+                    to: email_options.to_email).send
         end
       end
 
@@ -77,49 +73,9 @@ module Middleman
         Dir.glob(File.join(app.build_dir, base_path, '**', '*.html'))
       end
 
-      def send_email(file)
-        from = email_options.from_email
-        to = email_options.to_email
-        Mail.deliver do
-          from     from
-          to       to
-          subject  'Test email: '
-          body
-           html_part do
-            content_type 'text/html; charset=UTF-8'
-            body File.open(file).read
-          end
-        end
-      end
-
       def email_options
-        options = nil
-
-        begin
-          options = app.options
-        rescue NoMethodError
-          raise Error, "ERROR: ou need to activate the email extension in config.rb.\n#{Middleman::Email::README}"
-        end
-
-        unless options.emails_path
-          raise Error, "ERROR: You should indicate a emails_path in the activate block.\n#{Middleman::Email::README}"
-        end
-
-        unless options.to_email
-          raise Error, "ERROR: You should indicate a to_email in the activate block.\n#{Middleman::Email::README}"
-        end
-
-        unless options.from_email
-          raise Error, "ERROR: You should indicate a from_email in the activate block.\n#{Middleman::Email::README}"
-        end
-        options
+        @email_options ||= EmailOptions.options
       end
-
-      def app
-        ::Middleman::Application.server.inst
-      end
-
-
 
     end
     Base.map('ems' => 'email')
