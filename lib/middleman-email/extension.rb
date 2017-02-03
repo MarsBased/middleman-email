@@ -4,34 +4,30 @@ require 'middleman-core'
 # Extension namespace
 module Middleman
   module Email
-    class Options < Struct.new(:user, :password, :domain, :address, :port,
-                               :authentication,:emails_path, :build_before, :to_email, :from_email, :base_url);
+    @options
+    
+    class << self
+      attr_reader :options
+
+      attr_writer :options
     end
 
-    class << self
-      def options
-        @@options
-      end
+    class Extension < Extension
+      option :user, nil
+      option :password, nil
+      option :emails_path, nil
+      option :to_email, nil
+      option :from_email, nil
+      option :port, nil
+      option :domain, nil
+      option :address, nil
+      option :base_url, nil
+      option :authentication, :plain
+      option :build_before, true
 
-      def registered(app, options_hash = {}, &block)
-        require 'premailer'
-        require 'mail'
-
-        options = Options.new(options_hash)
+      def initialize(app, options_hash = {}, &block)
+        super
         yield options if block_given?
-
-
-        # Default options for the rsync method.
-        options.port ||= 25
-        options.domain ||= 'localhost'
-        options.authentication = :plain
-        options.build_before = true
-
-
-        @@options = options
-        configure_emails(options)
-
-        app.send :include, Helpers
       end
 
       def configure_emails(options)
@@ -46,8 +42,12 @@ module Middleman
         end
       end
 
-
-      alias_method :included, :registered
+      def after_configuration
+        ::Middleman::Email.options = options
+        require 'premailer'
+        require 'mail'
+        configure_emails(options)
+      end
     end
 
 
