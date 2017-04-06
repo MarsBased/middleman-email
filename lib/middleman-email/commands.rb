@@ -1,13 +1,14 @@
 require 'middleman-core/cli'
-
-require 'middleman-email/pkg-info'
-require 'middleman-email/extension'
-
+require 'middleman-core/rack' if Middleman::VERSION.to_i > 3
+require 'middleman-deploy/pkg-info'
+require 'middleman-deploy/extension'
+require 'middleman-deploy/methods'
+require 'middleman-deploy/strategies'
 
 module Middleman
   module Cli
     # This class provides a "email" command for the middleman CLI.
-    class Email < Thor
+    class Email < Thor::Group
       include Thor::Actions
 
       check_unknown_options!
@@ -19,21 +20,21 @@ module Middleman
         true
       end
 
-      desc 'email [options]', Middleman::Email::TAGLINE
-      method_option 'file',
+      # desc 'email [options]', Middleman::Email::TAGLINE
+      class_option 'file',
         type: :string,
         aliases: '-f',
         desc: 'Path of file from emails base path. Executes the email task only for this file.'
-      method_option 'subfolder',
+      class_option 'subfolder',
         type: :string,
         aliases: '-s',
         desc: 'Subfolder path from emails base path. Executes the email task for all html files inside the directory'
-      method_option 'build_before',
+      class_option 'build_before',
         type: :boolean,
         aliases: '-b',
         desc: 'Executes a build before premailer. '
 
-      def email(*args)
+      def email
         emails_path = options.fetch('emails_path', email_options.emails_path)
         build_before = options.fetch('build_before', email_options.build_before)
         file = options.fetch('file', nil)
@@ -68,22 +69,22 @@ module Middleman
       end
 
       def simple_file_path(base_path)
-        [File.join(app.build_dir, base_path, options.fetch('file'))]
+        [File.join(build_dir, base_path, options.fetch('file'))]
       end
 
       def subfolder_path(base_path)
         subfolder = options.fetch('subfolder')
-        Dir.glob(File.join(app.build_dir, base_path, subfolder, '**','*.html'))
+        Dir.glob(File.join(build_dir, base_path, subfolder, '**','*.html'))
       end
 
       def all_files_path(base_path)
-        Dir.glob(File.join(app.build_dir, base_path, '**', '*.html'))
+        Dir.glob(File.join(build_dir, base_path, '**', '*.html'))
       end
 
       def send_email(file)
         from = email_options.from_email
         to = email_options.to_email
-        subject = file.gsub(File.join(app.build_dir, email_options.emails_path), '')
+        subject = file.gsub(File.join(build_dir, email_options.emails_path), '')
         Mail.deliver do
           from     from
           to       to
@@ -100,7 +101,7 @@ module Middleman
         options = nil
 
         begin
-          options = app.email_options
+          options = ::Middleman::Email.options
         rescue NoMethodError
           raise Error, "ERROR: ou need to activate the email extension in config.rb.\n#{Middleman::Email::README}"
         end
@@ -120,9 +121,17 @@ module Middleman
       end
 
       def app
-        ::Middleman::Application.server.inst
+        @app ||= ::Middleman::Application.new
+      end
+
+      def build_dir
+        app.config.setting(:build_dir).value
       end
     end
+
+    # Add to CLI
+    Base.register(Middleman::Cli::Email, 'email', 'email [options]', Middleman::Deploy::TAGLINE)
+
     Base.map('ems' => 'email')
   end
 end
