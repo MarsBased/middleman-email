@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/MarsBased/middleman-email.png?label=ready&title=Ready)](https://waffle.io/MarsBased/middleman-email)
 # Activation
 
 To activate the extension you should include the following block in your config.rb file:
