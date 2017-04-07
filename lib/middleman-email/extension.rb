@@ -4,15 +4,15 @@ require 'middleman-core'
 # Extension namespace
 module Middleman
   module Email
-    @options
-    
     class << self
-      attr_reader :options
 
+      attr_reader :options
       attr_writer :options
+
     end
 
     class Extension < Extension
+
       option :user, nil
       option :password, nil
       option :emails_path, nil
@@ -24,6 +24,7 @@ module Middleman
       option :base_url, nil
       option :authentication, :plain
       option :build_before, true
+      option :build_dir
 
       def initialize(app, options_hash = {}, &block)
         super
@@ -32,13 +33,13 @@ module Middleman
 
       def configure_emails(options)
         Mail.defaults do
-          delivery_method :smtp, { address: options.address,
-                                 port: options.port,
-                                 domain: options.domain,
-                                 authentication: options.authentication,
-                                 user_name: options.user,
-                                 password: options.password
-                                }
+          delivery_method :smtp,
+                          address: options.address,
+                          port: options.port,
+                          domain: options.domain,
+                          authentication: options.authentication,
+                          user_name: options.user,
+                          password: options.password
         end
       end
 
@@ -48,9 +49,8 @@ module Middleman
         require 'mail'
         configure_emails(options)
       end
+
     end
-
-
 
     module Helpers
       def email_options

@@ -1,14 +1,11 @@
 require 'middleman-core/cli'
 require 'middleman-core/rack' if Middleman::VERSION.to_i > 3
-require 'middleman-deploy/pkg-info'
-require 'middleman-deploy/extension'
-require 'middleman-deploy/methods'
-require 'middleman-deploy/strategies'
 
 module Middleman
   module Cli
     # This class provides a "email" command for the middleman CLI.
     class Email < Thor::Group
+
       include Thor::Actions
 
       check_unknown_options!
@@ -32,29 +29,23 @@ module Middleman
       class_option 'build_before',
         type: :boolean,
         aliases: '-b',
-        desc: 'Executes a build before premailer. '
+        desc: 'Executes a build before premailer.'
 
       def email
         emails_path = options.fetch('emails_path', email_options.emails_path)
         build_before = options.fetch('build_before', email_options.build_before)
-        file = options.fetch('file', nil)
         run('middleman build') if build_before
-        premailer(files_to_send(emails_path))
+        email_options.build_dir = build_dir
+        compile_and_send_emails(files_to_send(emails_path))
       end
 
       protected
 
-      def premailer(files_path)
+      def compile_and_send_emails(files_path)
         files_path.each do |file|
-          base_url = email_options.base_url || ''
-          premailer = Premailer.new(file, :base_url => base_url, :warn_level => Premailer::Warnings::SAFE, :adapter => :nokogiri, :preserve_styles => false, :remove_comments => false, :remove_ids => true, :'query-string' => '')
-          fileout = File.open(file, 'w')
-          fileout.puts premailer.to_inline_css
-          fileout.close
-          send_email(file)
-          premailer.warnings.each do |w|
-            puts "#{w[:message]} (#{w[:level]}) may not render properly in #{w[:clients]}"
-          end
+          email_file = Middleman::Email::FileSender.new(file, email_options)
+          email_file.send
+          email_file.print_warnings
         end
       end
 
@@ -81,41 +72,29 @@ module Middleman
         Dir.glob(File.join(build_dir, base_path, '**', '*.html'))
       end
 
-      def send_email(file)
-        from = email_options.from_email
-        to = email_options.to_email
-        subject = file.gsub(File.join(build_dir, email_options.emails_path), '')
-        Mail.deliver do
-          from     from
-          to       to
-          subject  "Email: #{subject}"
-          body
-           html_part do
-            content_type 'text/html; charset=UTF-8'
-            body File.open(file).read
-          end
-        end
-      end
-
       def email_options
         options = nil
 
         begin
           options = ::Middleman::Email.options
         rescue NoMethodError
-          raise Error, "ERROR: ou need to activate the email extension in config.rb.\n#{Middleman::Email::README}"
+          raise Error, 'ERROR: ou need to activate the email extension in '\
+            "config.rb.\n#{Middleman::Email::README}"
         end
 
         unless options.emails_path
-          raise Error, "ERROR: You should indicate a emails_path in the activate block.\n#{Middleman::Email::README}"
+          raise Error, 'ERROR: You should indicate a emails_path in the activate'\
+            "block.\n#{Middleman::Email::README}"
         end
 
         unless options.to_email
-          raise Error, "ERROR: You should indicate a to_email in the activate block.\n#{Middleman::Email::README}"
+          raise Error, 'ERROR: You should indicate a to_email in the activate '\
+            "block.\n#{Middleman::Email::README}"
         end
 
         unless options.from_email
-          raise Error, "ERROR: You should indicate a from_email in the activate block.\n#{Middleman::Email::README}"
+          raise Error, 'ERROR: You should indicate a from_email in the activate '\
+            "block.\n#{Middleman::Email::README}"
         end
         options
       end
@@ -127,6 +106,7 @@ module Middleman
       def build_dir
         app.config.setting(:build_dir).value
       end
+
     end
 
     # Add to CLI
