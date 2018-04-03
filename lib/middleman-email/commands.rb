@@ -30,22 +30,49 @@ module Middleman
         type: :boolean,
         aliases: '-b',
         desc: 'Executes a build before premailer.'
+      class_option 'local_only',
+        type: :boolean,
+        aliases: '-l',
+        desc: 'Does not send the resulting compiled template. It saves it into disk.'
 
       def email
         emails_path = options.fetch('emails_path', email_options.emails_path)
         build_before = options.fetch('build_before', email_options.build_before)
+        local_only = options.fetch('local_only', email_options.local_only)
         run('middleman build') if build_before
         email_options.build_dir = build_dir
-        compile_and_send_emails(files_to_send(emails_path))
+        compiled_emails = compile_files(files_to_send(emails_path))
+        if local_only
+          save_emails_to_file(compiled_emails)
+        else
+          send_emails(compiled_emails)
+        end
       end
 
       protected
 
-      def compile_and_send_emails(files_path)
-        files_path.each do |file|
-          email_file = Middleman::Email::FileSender.new(file, email_options)
-          email_file.send
+      def compile_files(files_path)
+        files_path.map do |file|
+          email_file = Middleman::Email::Compiler.new(file, email_options)
+          html_content = email_file.compile
           email_file.print_warnings
+          { title: email_name.file_name, html_content: html_content }
+        end
+      end
+
+      def send_emails(compiled_emails)
+        compiled_emails.each do |compiled_email|
+          Middleman::Email::FileSender.new(compiled_email[:title],
+                                           compiled_email[:html_content],
+                                           email_options).send
+        end
+      end
+
+      def save_emails_to_file(compiled_emails)
+        compiled_emails.each do |compiled_email|
+          FileUtils.mkdir('compiled_emails')
+          file_path = "compiled_emails/#{compiled_email[:title]}-#{Time.now.to_i}"
+          File.open(file_path, 'w') { |file| compiled_email[:html_content] }
         end
       end
 
@@ -110,7 +137,7 @@ module Middleman
     end
 
     # Add to CLI
-    Base.register(Middleman::Cli::Email, 'email', 'email [options]', Middleman::Deploy::TAGLINE)
+    Base.register(Middleman::Cli::Email, 'email', 'email [options]', Middleman::Email::TAGLINE)
 
     Base.map('ems' => 'email')
   end
