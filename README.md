@@ -38,6 +38,7 @@ bundle exec middleman email -b false
 ```
 
 **-s (subfolder)** We can pass a subfolder to the command and all the emails inside this subfolder (inside the emails_path directory) will be sent.
+
 Example:
 
 ```
@@ -47,8 +48,18 @@ bundle exec middleman email -s common_emails
 If for example, emails_path is 'emails', all html files inside build_dir/emails/common_emails will be sent.
 
 **-f (file)** File to be sent in the email. The value must be the path of the file.
+
 Example:
 
 ```
 bundle exec middleman email -s common_emails/my_email.html
 ```
+
+**-l (local_only)** Does not send the resulting compiled template. It saves it into compiled_email folder
+
+Example:
+
+```
+bundle exec middleman email -l
+```
+
