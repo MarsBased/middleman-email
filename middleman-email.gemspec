@@ -9,7 +9,7 @@ require 'middleman-email/pkg-info'
 
 Gem::Specification.new do |s|
   s.name        = "middleman-email"
-  s.version     = "0.0.1"
+  s.version     = "0.0.2"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Your Name"]
   s.email       = ["email@example.com"]
