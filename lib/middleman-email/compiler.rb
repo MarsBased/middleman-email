@@ -3,11 +3,13 @@ module Middleman
     class Compiler
 
       attr_reader :file_name
+      attr_reader :file_parent
 
       def initialize(file, options)
         @warnings = []
         @email_options = options
         @file = file
+        @file_parent = Pathname.new(@file).parent.to_s
         @file_name = Pathname.new(@file).basename.to_s
         @warnings
       end
