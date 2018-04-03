@@ -24,6 +24,7 @@ module Middleman
       option :base_url, nil
       option :authentication, :plain
       option :build_before, true
+      option :local_only, true
       option :build_dir
 
       def initialize(app, options_hash = {}, &block)

@@ -56,7 +56,7 @@ module Middleman
           email_file = Middleman::Email::Compiler.new(file, email_options)
           html_content = email_file.compile
           email_file.print_warnings
-          { title: email_name.file_name, html_content: html_content }
+          { title: email_file.file_name, html_content: html_content }
         end
       end
 
@@ -70,9 +70,9 @@ module Middleman
 
       def save_emails_to_file(compiled_emails)
         compiled_emails.each do |compiled_email|
-          FileUtils.mkdir('compiled_emails')
+          FileUtils.mkdir_p('compiled_emails')
           file_path = "compiled_emails/#{compiled_email[:title]}-#{Time.now.to_i}"
-          File.open(file_path, 'w') { |file| compiled_email[:html_content] }
+          File.open(file_path, 'w') { |file| file.write(compiled_email[:html_content]) }
         end
       end
 
